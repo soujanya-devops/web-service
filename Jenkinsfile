@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "hello-service"
+        DOCKER_IMAGE = "soujanyachalla/web-service"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/your-repo/hello-service.git'
+                git 'https://github.com/soujanya-devops/web-service.git'
             }
         }
 
