@@ -1,0 +1,45 @@
+name: CI/CD Pipeline  # Name of the GitHub Actions workflow
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push events to the 'main' branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # The build job runs on the latest version of Ubuntu
+    steps:
+    - name: Checkout code  # Checkout the repository code
+      uses: actions/checkout@v2
+
+    - name: Set up Python  # Set up the Python environment
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9  # Specify the Python version to use
+
+    - name: Install dependencies  # Install the required Python packages
+      run: pip install flask
+
+    - name: Build Docker image  # Build the Docker image
+      run: docker build -t hello-service .
+
+    - name: Run tests  # Run tests on the built Docker image
+      run: |
+        docker run -d -p 5000:5000 hello-service  # Run the container in detached mode
+        sleep 5  # Wait for the container to start
+        curl -f http://localhost:5000  # Test the endpoint
+
+  deploy:
+    needs: build  # The deploy job depends on the build job
+    runs-on: ubuntu-latest  # The deploy job runs on the latest version of Ubuntu
+    steps:
+    - name: Checkout code  # Checkout the repository code
+      uses: actions/checkout@v2
+
+    - name: Deploy to Kubernetes  # Deploy the application to Kubernetes
+      env:
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}  # Use the KUBECONFIG secret for authentication
+      run: |
+        kubectl apply -f deployment.yaml  # Apply the deployment manifest
+        kubectl apply -f service.yaml  # Apply the service manifest
+
