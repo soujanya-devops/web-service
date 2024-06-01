@@ -35,10 +35,15 @@ jobs:
     steps:
     - name: Checkout code  # Checkout the repository code
       uses: actions/checkout@v2
-
+    - name: set up kubeconfig
+      env:
+        KUBECONFIG: .github/kubeconfig.yaml
+      run:
+        mkdir -p $HOME/ .kube
+        cp $KUBECONFIG $HOME/ .kube/config
     - name: Deploy to Kubernetes  # Deploy the application to Kubernetes
       env:
-        KUBECONFIG: ${{ secrets.KUBECONFIG }}  # Use the KUBECONFIG secret for authentication
+        KUBECONFIG: $HOME/ .kube/config  # Use the KUBECONFIG secret for authentication
       run: |
         kubectl apply -f deployment.yaml  # Apply the deployment manifest
         kubectl apply -f service.yaml  # Apply the service manifest
