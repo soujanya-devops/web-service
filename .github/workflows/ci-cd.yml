@@ -1,60 +1,60 @@
-name: CI/CD Pipeline  # Name of the GitHub Actions workflow
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main  # Trigger the workflow on push events to the 'main' branch
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # The build job runs on the latest version of Ubuntu
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout code  # Checkout the repository code
+    - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python  # Set up the Python environment
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9  # Specify the Python version to use
+        python-version: 3.9
 
-    - name: Install dependencies  # Install the required Python packages
+    - name: Install dependencies
       run: pip install flask
 
-    - name: Build Docker image  # Build the Docker image
+    - name: Build Docker image
       run: docker build -t hello-service .
 
-    - name: Run tests  # Run tests on the built Docker image
+    - name: Run tests
       run: |
-        docker run -d -p 5000:5000 hello-service  # Run the container in detached mode
-        sleep 5  # Wait for the container to start
-        curl -f http://localhost:5000  # Test the endpoint
+        docker run -d -p 5000:5000 hello-service
+        sleep 5
+        curl -f http://localhost:5000
 
   deploy:
-    needs: build  # The deploy job depends on the build job
-    runs-on: ubuntu-latest  # The deploy job runs on the latest version of Ubuntu
+    needs: build
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout code  # Checkout the repository code
+    - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Configure AWS credentials  # Configure AWS credentials
+    - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2  # Replace with your AWS region
+        aws-region: us-east-2
 
-    - name: Set up kubectl  # Set up kubectl
-      uses: actions-hub/kubectl@master
-      env:
-        KUBE_HOST: ${{ secrets.KUBE_HOST }}
-        KUBE_CERTIFICATE: ${{ secrets.KUBE_CERTIFICATE }}
-        KUBE_USERNAME: ${{ secrets.KUBE_USERNAME }}
-        KUBE_PASSWORD: ${{ secrets.KUBE_PASSWORD }}
-      with:
-        args: get pods
-
-    - name: Deploy to Kubernetes  # Deploy the application to Kubernetes
+    - name: Install kubectl
       run: |
-        kubectl apply -f deployment.yaml  # Apply the deployment manifest
-        kubectl apply -f service.yaml  # Apply the service manifest
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name your-cluster-name --region us-east-2
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f deployment.yaml
+        kubectl apply -f service.yaml
 
