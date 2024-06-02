@@ -32,7 +32,7 @@ jobs:
 
     - name: Run tests
       run: |
-        docker run -d -p 5000:5000 hello-service
+        docker run -d -p 5000:5000 soujanyachalla/hello-service
         sleep 5
         curl -f http://localhost:5000
 
