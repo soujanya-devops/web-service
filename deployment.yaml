@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: hello-service
-        image: hello-service:latest
+        image: soujanyachalla/hello-service:latest
         ports:
         - containerPort: 5000
         resources:
@@ -24,4 +24,6 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "500m"
+      imagePullSecrets:
+      - name: dockerhub-secret
 

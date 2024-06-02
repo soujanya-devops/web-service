@@ -60,6 +60,14 @@ jobs:
       run: |
         aws eks update-kubeconfig --name web-cluster --region us-east-2
 
+    - name: Create Kubernetes Secret
+      run: |
+        kubectl create secret docker-registry dockerhub-secret \
+          --docker-server=https://index.docker.io/v1/ \
+          --docker-username="${{ secrets.DOCKER_USERNAME }}" \
+          --docker-password="${{ secrets.DOCKER_PASSWORD }}" \
+          --docker-email="${{ secrets.DOCKER_EMAIL }}"
+
     - name: Deploy to Kubernetes
       run: |
         kubectl apply -f deployment.yaml
