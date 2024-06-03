@@ -60,13 +60,23 @@ jobs:
       run: |
         aws eks update-kubeconfig --name web-cluster --region us-east-2
 
-    - name: Create Kubernetes Secret
+    - name: Create Docker Registry Secret if not exists
       run: |
-        kubectl create secret docker-registry dockerhub-secret \
-          --docker-server=https://index.docker.io/v1/ \
-          --docker-username="${{ secrets.DOCKER_USERNAME }}" \
-          --docker-password="${{ secrets.DOCKER_PASSWORD }}" \
-          --docker-email="${{ secrets.DOCKER_EMAIL }}"
+        #!/bin/bash
+        SECRET_NAME="dockerhub-secret"
+        NAMESPACE="default"
+
+        if kubectl get secret $SECRET_NAME --namespace $NAMESPACE; then
+          echo "Secret '$SECRET_NAME' already exists in namespace '$NAMESPACE'."
+        else
+          echo "Creating secret '$SECRET_NAME' in namespace '$NAMESPACE'."
+          kubectl create secret docker-registry $SECRET_NAME \
+            --docker-server=https://index.docker.io/v1/ \
+            --docker-username="${{ secrets.DOCKER_USERNAME }}" \
+            --docker-password="${{ secrets.DOCKER_PASSWORD }}" \
+            --docker-email="${{ secrets.DOCKER_EMAIL }}" \
+            --namespace $NAMESPACE
+        fi
 
     - name: Deploy to Kubernetes
       run: |
